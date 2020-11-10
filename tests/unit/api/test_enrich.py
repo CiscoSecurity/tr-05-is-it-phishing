@@ -36,6 +36,7 @@ def test_enrich_call_with_valid_jwt_but_invalid_json_value(
                            json=invalid_json_value)
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_json_expected_payload(
+        "Invalid JSON payload received. "
         "{0: {'value': ['Field may not be blank.']}}"
     )
 
@@ -50,6 +51,7 @@ def test_enrich_call_with_valid_jwt_but_invalid_json_type(
                            json=invalid_json_type)
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_json_expected_payload(
+        'Invalid JSON payload received. '
         '{0: {\'type\': ["Must be one of: ' + allowed_fields + '."]}}'
     )
 

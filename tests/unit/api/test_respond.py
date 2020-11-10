@@ -59,6 +59,7 @@ def test_respond_call_with_valid_jwt_but_invalid_json_value(
                            json=invalid_json_value)
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_json_expected_payload(
+        "Invalid JSON payload received. "
         "{0: {'value': ['Field may not be blank.']}}"
     )
 
@@ -72,6 +73,7 @@ def test_respond_call_with_valid_jwt_but_invalid_json_type(
                            json=invalid_json_type)
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_json_expected_payload(
+        'Invalid JSON payload received. '
         '{0: {\'type\': ["Must be one of: ' + allowed_fields + '."]}}'
     )
 
@@ -85,6 +87,7 @@ def test_respond_call_with_valid_jwt_but_invalid_json_action_id(
                            json=invalid_json_action_id)
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_json_expected_payload(
+        "Invalid JSON payload received. "
         "{'action-id': ['Missing data for required field.']}"
     )
 
@@ -98,7 +101,7 @@ def test_respond_call_with_valid_jwt_but_invalid_json_observable_type(
                            json=invalid_json_observable_type)
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_json_expected_payload(
-        '{\'observable_type\': '
+        'Invalid JSON payload received. {\'observable_type\': '
         '["Must be one of: ' + allowed_fields + '."]}'
     )
 
@@ -112,6 +115,7 @@ def test_respond_call_with_valid_jwt_but_invalid_json_observable_value(
                            json=invalid_json_observable_value)
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_json_expected_payload(
+        "Invalid JSON payload received. "
         "{'observable_value': ['Field may not be blank.']}"
     )
 
