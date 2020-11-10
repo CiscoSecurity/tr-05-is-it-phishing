@@ -21,10 +21,11 @@ class TRFormattedError(Exception):
 
 class AuthorizationError(TRFormattedError):
     def __init__(self, reason=None):
+        message = 'Authorization failed'
         if reason:
-            message = f'Authorization failed: {reason}'
+            message += f': {reason}'
         else:
-            message = f'Authorization failed.'
+            message += '.'
 
         super().__init__(
             AUTH_ERROR,
@@ -54,6 +55,6 @@ class UnexpectedIsItPhishingError(TRFormattedError):
     def __init__(self, response):
         super().__init__(
             HTTPStatus(response.status_code).phrase.lower(),
-            'Unexpected response from Is It Phishing:'
-            f' {HTTPStatus(response.status_code).phrase}'
+            'Unexpected response from Is It Phishing: '
+            f'{HTTPStatus(response.status_code).phrase}'
         )

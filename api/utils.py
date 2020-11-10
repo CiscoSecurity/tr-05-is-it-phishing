@@ -4,7 +4,10 @@ from authlib.jose.errors import DecodeError, BadSignatureError
 from flask import request, current_app, jsonify, g
 from http import HTTPStatus
 
-from api.errors import AuthorizationError, InvalidArgumentError, IsItPhishingSSLError, UnexpectedIsItPhishingError
+from api.errors import (
+    AuthorizationError, InvalidArgumentError,
+    IsItPhishingSSLError, UnexpectedIsItPhishingError
+)
 
 
 def get_auth_token():
