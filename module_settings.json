@@ -1,6 +1,8 @@
 {
   "name": "Is It Phishing",
-  "jwt": "ToDo",
+  "jwt": {
+    "key": "Is It Phishing API Key"
+  },
   "region": {
     "us": "ToDo",
     "eu": "ToDo",

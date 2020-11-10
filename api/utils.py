@@ -1,8 +1,10 @@
+import requests
 from authlib.jose import jwt
 from authlib.jose.errors import DecodeError, BadSignatureError
-from flask import request, current_app, jsonify
+from flask import request, current_app, jsonify, g
+from http import HTTPStatus
 
-from api.errors import AuthorizationError, InvalidArgumentError
+from api.errors import AuthorizationError, InvalidArgumentError, IsItPhishingSSLError, UnexpectedIsItPhishingError
 
 
 def get_auth_token():
@@ -70,3 +72,47 @@ def get_json(schema):
 
 def jsonify_data(data):
     return jsonify({'data': data})
+
+
+def ssl_error_handler(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except requests.exceptions.SSLError as error:
+            raise IsItPhishingSSLError(error)
+    return wrapper
+
+
+def jsonify_result():
+    result = {'data': {}}
+
+    if g.get('errors'):
+        result['errors'] = g.errors
+        if not result['data']:
+            del result['data']
+
+    return jsonify(result)
+
+
+@ssl_error_handler
+def get_is_it_phishing_response(key, observable):
+    data = {
+        'url': observable,
+        **current_app.config['REQUEST_JSON']
+    }
+
+    response = requests.post(
+        current_app.config['API_URL'],
+        json=data,
+        headers={
+            'Authorization': f'Bearer {key}',
+            'User-Agent': current_app.config['USER_AGENT']
+        }
+    )
+
+    if response.ok:
+        return response.json()
+    elif response.status_code == HTTPStatus.UNAUTHORIZED:
+        raise AuthorizationError()
+
+    raise UnexpectedIsItPhishingError(response)
