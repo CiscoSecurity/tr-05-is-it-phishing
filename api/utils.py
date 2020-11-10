@@ -118,4 +118,4 @@ def get_is_it_phishing_response(key, observable):
     elif response.status_code == HTTPStatus.UNAUTHORIZED:
         raise AuthorizationError()
 
-    raise UnexpectedIsItPhishingError(response)
+    raise UnexpectedIsItPhishingError(response.status_code)

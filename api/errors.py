@@ -52,9 +52,9 @@ class IsItPhishingSSLError(TRFormattedError):
 
 
 class UnexpectedIsItPhishingError(TRFormattedError):
-    def __init__(self, response):
+    def __init__(self, status_code):
         super().__init__(
-            HTTPStatus(response.status_code).phrase.lower(),
+            HTTPStatus(status_code).phrase.lower(),
             'Unexpected response from Is It Phishing: '
-            f'{HTTPStatus(response.status_code).phrase}'
+            f'{HTTPStatus(status_code).phrase}'
         )
