@@ -1,11 +1,11 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, g
 
 from api.enrich import enrich_api
 from api.health import health_api
 from api.respond import respond_api
 from api.version import version_api
 from api.errors import TRFormattedError
-from api.utils import jsonify_data
+from api.utils import jsonify_result
 
 app = Flask(__name__)
 
@@ -33,9 +33,10 @@ def handle_error(exception):
 
 
 @app.errorhandler(TRFormattedError)
-def handle_tr_formatted_error(exception):
-    app.logger.error(exception)
-    return jsonify_data(exception.json)
+def handle_tr_formatted_error(error):
+    app.logger.error(error)
+    g.errors = [error.json]
+    return jsonify_result()
 
 
 if __name__ == '__main__':

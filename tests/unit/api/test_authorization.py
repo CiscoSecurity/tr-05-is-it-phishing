@@ -12,8 +12,6 @@ def routes():
     yield '/deliberate/observables'
     yield '/observe/observables'
     yield '/refer/observables'
-    yield '/respond/observables'
-    yield '/respond/trigger'
 
 
 @fixture(scope='module', params=routes(), ids=lambda route: f'POST {route}')
@@ -63,11 +61,13 @@ def invalid_jwt(valid_jwt):
 def authorization_errors_expected_payload(route):
     def _make_payload_message(message):
         payload = {
-            'data': {
-                'code': AUTH_ERROR,
-                'message': f'Authorization failed: {message}',
-                'type': 'fatal'}
-
+            'errors': [
+                {
+                    'code': AUTH_ERROR,
+                    'message': f'Authorization failed: {message}',
+                    'type': 'fatal'
+                }
+            ]
         }
         return payload
 
