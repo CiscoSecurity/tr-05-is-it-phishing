@@ -3,6 +3,8 @@ from http import HTTPStatus
 AUTH_ERROR = 'authorization error'
 INVALID_ARGUMENT = 'invalid argument'
 UNKNOWN = 'unknown'
+REQUEST_TIMEOUT = 'request timeout'
+NOT_EXPLORED = 'not explored'
 
 
 class TRFormattedError(Exception):
@@ -57,4 +59,24 @@ class UnexpectedIsItPhishingError(TRFormattedError):
             HTTPStatus(status_code).phrase.lower(),
             'Unexpected response from Is It Phishing: '
             f'{HTTPStatus(status_code).phrase}'
+        )
+
+
+class IsItPhishingTimeout(TRFormattedError):
+    def __init__(self, url):
+        super().__init__(
+            REQUEST_TIMEOUT,
+            f'While processing URL "{url}" the timeout was reached.',
+            'warning'
+        )
+
+
+class IsItPhishingNotExplored(TRFormattedError):
+    def __init__(self, url):
+        super().__init__(
+            NOT_EXPLORED,
+            f'The Is It Phishing API was not able to process '
+            f'URL "{url}" without a risk. As such, it was not '
+            f'able to complete the analysis.',
+            'warning'
         )

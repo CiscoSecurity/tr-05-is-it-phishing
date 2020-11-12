@@ -49,7 +49,7 @@ def is_it_phishing_response_mock(status_code, payload=None):
 
 
 @fixture(scope='function')
-def is_it_phishing_health_response_ok():
+def is_it_phishing_success_response():
     return is_it_phishing_response_mock(
         HTTPStatus.OK, payload={
             "status": "PHISHING"
@@ -65,13 +65,36 @@ def is_it_phishing_internal_server_error():
 
 
 def expected_payload(route, body):
-    if route.endswith('/deliberate/observables'):
-        return {'data': {}}
-
     if route.endswith('/refer/observables'):
         return {'data': []}
 
     return body
+
+
+@fixture(scope='module')
+def success_enrich_body():
+    return {
+            'data': {
+                'verdicts': {
+                    'count': 1,
+                    'docs': [
+                        {'disposition': 2,
+                         'disposition_name': 'Malicious',
+                         'observable': {
+                             'type': 'url',
+                             'value': 'http://thisisphishing.com'
+                         },
+                         'type': 'verdict'
+                         }
+                    ]
+                }
+            }
+        }
+
+
+@fixture(scope='module')
+def success_enrich_expected_payload(route, success_enrich_body):
+    return expected_payload(route, success_enrich_body)
 
 
 @fixture(scope='session')
@@ -84,7 +107,7 @@ def is_it_phishing_ssl_exception_mock(secret_key):
 
 @fixture(scope='module')
 def ssl_error_expected_payload(route, client):
-    if route in ('/observe/observables', '/health'):
+    if route != '/refer/observables':
         return {
             'errors': [
                 {
@@ -96,10 +119,14 @@ def ssl_error_expected_payload(route, client):
             ]
         }
 
-    if route.endswith('/deliberate/observables'):
-        return {'data': {}}
-
     return {'data': []}
+
+
+@fixture(scope='session')
+def is_it_phishing_invalid_url_response(secret_key):
+    return is_it_phishing_response_mock(
+        HTTPStatus.BAD_REQUEST
+    )
 
 
 @fixture(scope='module')

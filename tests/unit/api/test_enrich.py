@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from pytest import fixture
+from unittest.mock import patch
 
 from api.schemas import OBSERVABLE_TYPE_CHOICES
 from .utils import headers
@@ -58,9 +59,72 @@ def test_enrich_call_with_valid_jwt_but_invalid_json_type(
 
 @fixture(scope='module')
 def valid_json():
-    return [{'type': 'domain', 'value': 'cisco.com'}]
+    return [{'type': 'url', 'value': 'http://thisisphishing.com'}]
 
 
-def test_enrich_call_success(route, client, valid_jwt, valid_json):
+@patch('requests.post')
+def test_enrich_call_success(
+        mock_request, route, client, valid_jwt, valid_json,
+        success_enrich_expected_payload, is_it_phishing_success_response
+):
+    mock_request.return_value = is_it_phishing_success_response
     response = client.post(route, headers=headers(valid_jwt), json=valid_json)
     assert response.status_code == HTTPStatus.OK
+    response = response.get_json()
+    if response.get('data') and response['data'].get('verdicts'):
+        for doc in response['data']['verdicts']['docs']:
+            assert doc.pop('valid_time')
+    assert response == success_enrich_expected_payload
+
+
+@fixture(scope='module')
+def valid_json_multiple():
+    return [{'type': 'url', 'value': 'http://thisisphishing.com'},
+            {'type': 'url', 'value': 'test'},
+            {'type': 'url', 'value': 'http://thisisanotherphishing.com'}]
+
+
+@patch('requests.post')
+def test_enrich_call_with_extended_error_handling(
+        mock_request, route, client, valid_jwt, valid_json_multiple,
+        success_enrich_expected_payload, is_it_phishing_success_response,
+        is_it_phishing_invalid_url_response,
+        internal_server_error_expected_payload,
+        is_it_phishing_internal_server_error
+):
+    mock_request.side_effect = [
+        is_it_phishing_success_response,
+        is_it_phishing_invalid_url_response,
+        is_it_phishing_internal_server_error
+    ]
+    response = client.post(
+        route, headers=headers(valid_jwt), json=valid_json_multiple
+    )
+    assert response.status_code == HTTPStatus.OK
+    response = response.get_json()
+    if route != '/refer/observables':
+        if response.get('data') and response['data'].get('verdicts'):
+            for doc in response['data']['verdicts']['docs']:
+                assert doc.pop('valid_time')
+        assert response['errors'] == \
+            internal_server_error_expected_payload['errors']
+    assert response['data'] == success_enrich_expected_payload['data']
+
+
+@patch('requests.post')
+def test_enrich_with_ssl_error(
+        mock_request, route, client, valid_jwt,
+        valid_json, is_it_phishing_ssl_exception_mock,
+        ssl_error_expected_payload
+):
+
+    mock_request.side_effect = is_it_phishing_ssl_exception_mock
+
+    response = client.post(
+        route, headers=headers(valid_jwt), json=valid_json
+    )
+
+    assert response.status_code == HTTPStatus.OK
+
+    response = response.get_json()
+    assert response == ssl_error_expected_payload

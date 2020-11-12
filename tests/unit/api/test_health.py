@@ -17,10 +17,10 @@ def route(request):
 
 @patch('requests.post')
 def test_health_call_success(
-        mock_request, is_it_phishing_health_response_ok,
+        mock_request, is_it_phishing_success_response,
         route, client, valid_jwt
 ):
-    mock_request.return_value = is_it_phishing_health_response_ok
+    mock_request.return_value = is_it_phishing_success_response
     response = client.post(route, headers=headers(valid_jwt))
     assert response.status_code == HTTPStatus.OK
 
