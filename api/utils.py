@@ -127,14 +127,15 @@ def get_is_it_phishing_response(key, observable):
         }
     )
 
-    WARNINGS = {
+    warnings_mapping = {
         'TIMEOUT': IsItPhishingTimeout(observable),
         'NOT_EXPLORED': IsItPhishingNotExplored(observable)
     }
 
     if response.ok:
-        if response.json()["status"] in WARNINGS.keys():
-            append_warning(WARNINGS[response.json()["status"]])
+        status = response.json()['status']
+        if status in warnings_mapping.keys():
+            append_warning(warnings_mapping[status])
         return response.json()
     elif response.status_code == HTTPStatus.UNAUTHORIZED:
         raise AuthorizationError()
