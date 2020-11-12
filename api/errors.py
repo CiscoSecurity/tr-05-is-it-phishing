@@ -66,7 +66,7 @@ class IsItPhishingTimeout(TRFormattedError):
     def __init__(self, url):
         super().__init__(
             REQUEST_TIMEOUT,
-            f'While processing URL "{url}" the timeout was reached.',
+            f'Timeout was reached while processing URL: "{url}".',
             'warning'
         )
 
@@ -75,8 +75,7 @@ class IsItPhishingNotExplored(TRFormattedError):
     def __init__(self, url):
         super().__init__(
             NOT_EXPLORED,
-            f'The Is It Phishing API was not able to process '
-            f'URL "{url}" without a risk. As such, it was not '
-            f'able to complete the analysis.',
+            f'Is It Phishing API is set not to process such URLs as "{url}". '
+            f'URL may cause collateral damage to the end user.',
             'warning'
         )
