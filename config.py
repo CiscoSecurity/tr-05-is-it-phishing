@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from __version__ import VERSION
 
@@ -20,3 +21,28 @@ class Config:
 
     USER_AGENT = ('Cisco Threat Response Integrations '
                   '<tr-integrations-support@cisco.com>')
+
+    ENTITY_RELEVANCE_PERIOD = timedelta(days=7)
+
+    STATUS_MAPPING = {
+        'UNKNOWN': {
+            "disposition": 5,
+            "disposition_name": "Unknown",
+        },
+        'TIMEOUT': {
+            "disposition": 5,
+            "disposition_name": "Unknown",
+        },
+        'NOT_EXPLORED': {
+            "disposition": 5,
+            "disposition_name": "Unknown",
+        },
+        'SPAM': {
+            "disposition": 3,
+            "disposition_name": "Suspicious",
+        },
+        'PHISHING': {
+            "disposition": 2,
+            "disposition_name": "Malicious",
+        }
+    }

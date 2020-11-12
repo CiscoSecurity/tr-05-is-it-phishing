@@ -6,8 +6,11 @@ from http import HTTPStatus
 
 from api.errors import (
     AuthorizationError, InvalidArgumentError,
-    IsItPhishingSSLError, UnexpectedIsItPhishingError
+    IsItPhishingSSLError, UnexpectedIsItPhishingError,
+    IsItPhishingTimeout, IsItPhishingNotExplored
 )
+
+NOT_CRITICAL_ERRORS = (HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND)
 
 
 def get_auth_token():
@@ -86,8 +89,19 @@ def ssl_error_handler(func):
     return wrapper
 
 
+def format_docs(docs):
+    return {'count': len(docs), 'docs': docs}
+
+
+def append_warning(warning):
+    g.errors = [*g.get('errors', []), warning.json]
+
+
 def jsonify_result():
     result = {'data': {}}
+
+    if g.get('verdicts'):
+        result['data']['verdicts'] = format_docs(g.verdicts)
 
     if g.get('errors'):
         result['errors'] = g.errors
@@ -113,9 +127,19 @@ def get_is_it_phishing_response(key, observable):
         }
     )
 
+    warnings_mapping = {
+        'TIMEOUT': IsItPhishingTimeout(observable),
+        'NOT_EXPLORED': IsItPhishingNotExplored(observable)
+    }
+
     if response.ok:
+        status = response.json()['status']
+        if status in warnings_mapping.keys():
+            append_warning(warnings_mapping[status])
         return response.json()
     elif response.status_code == HTTPStatus.UNAUTHORIZED:
         raise AuthorizationError()
+    elif response.status_code in NOT_CRITICAL_ERRORS:
+        return {}
 
     raise UnexpectedIsItPhishingError(response.status_code)
