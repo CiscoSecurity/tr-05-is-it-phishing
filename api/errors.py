@@ -76,6 +76,6 @@ class IsItPhishingNotExplored(TRFormattedError):
         super().__init__(
             NOT_EXPLORED,
             f'Is It Phishing API is set not to process such URLs as "{url}". '
-            f'URL may cause collateral damage to the end user.',
+            f'This URL may cause collateral damage to the end user.',
             'warning'
         )
