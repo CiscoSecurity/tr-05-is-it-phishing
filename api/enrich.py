@@ -44,7 +44,7 @@ def extract_verdict(output, observable):
     return doc
 
 
-def extract_judgements(output, observable):
+def extract_judgement(output, observable):
     status = output['status']
     return {
         'observable': observable,
@@ -90,7 +90,7 @@ def observe_observables():
             output = get_is_it_phishing_response(api_key, value)
             if output:
                 g.verdicts.append(extract_verdict(output, observable))
-                g.judgements.append(extract_judgements(output, observable))
+                g.judgements.append(extract_judgement(output, observable))
 
     return jsonify_result()
 
