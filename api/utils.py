@@ -2,15 +2,12 @@ import requests
 from authlib.jose import jwt
 from authlib.jose.errors import DecodeError, BadSignatureError
 from flask import request, current_app, jsonify, g
-from http import HTTPStatus
 
 from api.errors import (
-    AuthorizationError, InvalidArgumentError,
-    IsItPhishingSSLError, UnexpectedIsItPhishingError,
-    IsItPhishingTimeout, IsItPhishingNotExplored
+    AuthorizationError,
+    InvalidArgumentError,
+    IsItPhishingSSLError
 )
-
-NOT_CRITICAL_ERRORS = (HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND)
 
 
 def get_auth_token():
@@ -109,37 +106,3 @@ def jsonify_result():
             del result['data']
 
     return jsonify(result)
-
-
-@ssl_error_handler
-def get_is_it_phishing_response(key, observable):
-    data = {
-        'url': observable,
-        **current_app.config['REQUEST_JSON']
-    }
-
-    response = requests.post(
-        current_app.config['API_URL'],
-        json=data,
-        headers={
-            'Authorization': f'Bearer {key}',
-            'User-Agent': current_app.config['USER_AGENT']
-        }
-    )
-
-    warnings_mapping = {
-        'TIMEOUT': IsItPhishingTimeout(observable),
-        'NOT_EXPLORED': IsItPhishingNotExplored(observable)
-    }
-
-    if response.ok:
-        status = response.json()['status']
-        if status in warnings_mapping.keys():
-            append_warning(warnings_mapping[status])
-        return response.json()
-    elif response.status_code == HTTPStatus.UNAUTHORIZED:
-        raise AuthorizationError()
-    elif response.status_code in NOT_CRITICAL_ERRORS:
-        return {}
-
-    raise UnexpectedIsItPhishingError(response.status_code)
