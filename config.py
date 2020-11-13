@@ -46,3 +46,21 @@ class Config:
             "disposition_name": "Malicious",
         }
     }
+
+    CTIM_SCHEMA_VERSION = '1.0.17'
+
+    CTIM_JUDGEMENT_DEFAULTS = {
+        'type': 'judgement',
+        'source': 'IsItPhishing',
+        'confidence': 'High',
+        'priority': 85,
+        'schema_version': CTIM_SCHEMA_VERSION,
+    }
+
+    SEVERITY_MAPPING = {
+        'UNKNOWN': 'Unknown',
+        'TIMEOUT': 'Unknown',
+        'NOT_EXPLORED': 'Unknown',
+        'SPAM': 'Medium',
+        'PHISHING': 'High'
+    }
