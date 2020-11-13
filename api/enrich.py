@@ -1,6 +1,5 @@
 from functools import partial
 from datetime import datetime
-from uuid import uuid4
 
 from flask import Blueprint, g
 
@@ -44,21 +43,6 @@ def extract_verdict(output, observable):
     return doc
 
 
-def extract_judgements(output, observable):
-    status = output['status']
-    return {
-        'observable': observable,
-        'severity': current_app.config['SEVERITY_MAPPING'][status],
-        'disposition':
-            current_app.config['STATUS_MAPPING'][status]['disposition'],
-        'disposition_name':
-            current_app.config['STATUS_MAPPING'][status]['disposition_name'],
-        'id': f'transient:judgement-{uuid4()}',
-        'valid_time': get_valid_time(),
-        **current_app.config['CTIM_JUDGEMENT_DEFAULTS']
-    }
-
-
 @enrich_api.route('/deliberate/observables', methods=['POST'])
 def deliberate_observables():
     api_key = get_jwt()
@@ -81,7 +65,6 @@ def observe_observables():
     api_key = get_jwt()
     observables = get_observables()
     g.verdicts = []
-    g.judgements = []
 
     for observable in observables:
         value = observable['value']
@@ -90,7 +73,6 @@ def observe_observables():
             output = get_is_it_phishing_response(api_key, value)
             if output:
                 g.verdicts.append(extract_verdict(output, observable))
-                g.judgements.append(extract_judgements(output, observable))
 
     return jsonify_result()
 
