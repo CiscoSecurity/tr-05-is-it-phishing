@@ -72,7 +72,7 @@ def expected_payload(route, body):
 
 
 @fixture(scope='module')
-def success_enrich_body():
+def success_observe_body():
     return {
             'data': {
                 'verdicts': {
@@ -87,14 +87,61 @@ def success_enrich_body():
                          'type': 'verdict'
                          }
                     ]
+                },
+                'judgements': {
+                    'count': 1,
+                    'docs': [
+                        {'confidence': 'High',
+                         'disposition': 2,
+                         'disposition_name': 'Malicious',
+                         'observable': {
+                             'type': 'url',
+                             'value': 'http://thisisphishing.com'
+                         },
+                         'priority': 85,
+                         'schema_version': '1.0.17',
+                         'severity': 'High',
+                         'source': 'IsItPhishing',
+                         'type': 'judgement',
+                         }
+                    ]
                 }
             }
-        }
+    }
 
 
 @fixture(scope='module')
-def success_enrich_expected_payload(route, success_enrich_body):
-    return expected_payload(route, success_enrich_body)
+def success_deliberate_body():
+    return {
+        'data': {
+            'verdicts': {
+                'count': 1,
+                'docs': [
+                    {'disposition': 2,
+                     'disposition_name': 'Malicious',
+                     'observable': {
+                         'type': 'url',
+                         'value': 'http://thisisphishing.com'
+                     },
+                     'type': 'verdict'
+                     }
+                ]
+            }
+        }
+    }
+
+
+@fixture(scope='module')
+def success_enrich_expected_payload(
+        route, success_deliberate_body,
+        success_observe_body
+):
+    payload_to_route_match = {
+        '/deliberate/observables': success_deliberate_body,
+        '/refer/observables': {'data': []},
+        '/observe/observables': success_observe_body
+    }
+    return payload_to_route_match[route]
 
 
 @fixture(scope='session')
@@ -137,8 +184,8 @@ def internal_server_error_expected_payload(route):
             "errors": [
                 {
                     "code": "internal server error",
-                    "message": "Unexpected response from Is It "
-                               "Phishing: Internal Server Error",
+                    "message": "Unexpected response from "
+                               "IsItPhishing: Internal Server Error",
                     "type": "fatal"
                 }
             ]

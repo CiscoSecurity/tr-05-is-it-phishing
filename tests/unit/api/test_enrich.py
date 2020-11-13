@@ -74,6 +74,10 @@ def test_enrich_call_success(
     if response.get('data') and response['data'].get('verdicts'):
         for doc in response['data']['verdicts']['docs']:
             assert doc.pop('valid_time')
+    if response.get('data') and response['data'].get('judgements'):
+        for doc in response['data']['judgements']['docs']:
+            assert doc.pop('valid_time')
+            assert doc.pop('id')
     assert response == success_enrich_expected_payload
 
 
@@ -103,9 +107,13 @@ def test_enrich_call_with_extended_error_handling(
     assert response.status_code == HTTPStatus.OK
     response = response.get_json()
     if route != '/refer/observables':
-        if response.get('data') and response['data'].get('verdicts'):
+        if response['data'].get('verdicts'):
             for doc in response['data']['verdicts']['docs']:
                 assert doc.pop('valid_time')
+        if response['data'].get('judgements'):
+            for doc in response['data']['judgements']['docs']:
+                assert doc.pop('valid_time')
+                assert doc.pop('id')
         assert response['errors'] == \
             internal_server_error_expected_payload['errors']
     assert response['data'] == success_enrich_expected_payload['data']
