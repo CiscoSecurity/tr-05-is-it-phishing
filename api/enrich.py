@@ -65,10 +65,6 @@ def extract_judgement(output, observable):
 
 @enrich_api.route('/deliberate/observables', methods=['POST'])
 def deliberate_observables():
-    def deliberate(observable):
-        response = client.get_is_it_phishing_response(observable['value'])
-        return response, observable
-
     api_key = get_jwt()
     client = IsItPhishingClient(
         api_key,
@@ -87,18 +83,24 @@ def deliberate_observables():
         with ThreadPoolExecutor(
                 max_workers=min(len(observables), (cpu_count() or 1) * 5)
         ) as executor:
-            iterator = executor.map(deliberate, observables)
+            iterator = executor.map(
+                lambda ob: (
+                    client.get_is_it_phishing_response(ob['value']), ob),
+                observables
+            )
 
         for output, obs in iterator:
             if output:
                 warnings_mapping = {
-                    'TIMEOUT': IsItPhishingTimeout(obs['value']),
-                    'NOT_EXPLORED': IsItPhishingNotExplored(obs['value'])
+                    'TIMEOUT': IsItPhishingTimeout,
+                    'NOT_EXPLORED': IsItPhishingNotExplored
                 }
 
                 g.verdicts.append(extract_verdict(output, obs))
                 if output['status'] in warnings_mapping.keys():
-                    append_warning(warnings_mapping[output['status']])
+                    append_warning(
+                        warnings_mapping[output['status']](obs['value'])
+                    )
 
     return jsonify_result()
 
