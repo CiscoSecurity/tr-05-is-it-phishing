@@ -99,6 +99,8 @@ def jsonify_result():
 
     if g.get('verdicts'):
         result['data']['verdicts'] = format_docs(g.verdicts)
+    if g.get('judgements'):
+        result['data']['judgements'] = format_docs(g.judgements)
 
     if g.get('errors'):
         result['errors'] = g.errors

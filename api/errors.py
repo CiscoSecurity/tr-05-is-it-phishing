@@ -27,7 +27,7 @@ class AuthorizationError(TRFormattedError):
         if reason:
             message += f': {reason}'
         else:
-            message += 'on Is It Phishing side'
+            message += 'on IsItPhishing side'
 
         super().__init__(
             AUTH_ERROR,
@@ -57,7 +57,7 @@ class UnexpectedIsItPhishingError(TRFormattedError):
     def __init__(self, status_code):
         super().__init__(
             HTTPStatus(status_code).phrase.lower(),
-            'Unexpected response from Is It Phishing: '
+            'Unexpected response from IsItPhishing: '
             f'{HTTPStatus(status_code).phrase}'
         )
 
@@ -75,7 +75,7 @@ class IsItPhishingNotExplored(TRFormattedError):
     def __init__(self, url):
         super().__init__(
             NOT_EXPLORED,
-            f'Is It Phishing API is set not to process such URLs as "{url}". '
+            f'IsItPhishing API is set not to process such URLs as "{url}". '
             f'This URL may cause collateral damage to the end user.',
             'warning'
         )
