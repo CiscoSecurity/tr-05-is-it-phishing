@@ -27,7 +27,7 @@ class AuthorizationError(TRFormattedError):
         if reason:
             message += f': {reason}'
         else:
-            message += 'on IsItPhishing side'
+            message += ' on IsItPhishing side'
 
         super().__init__(
             AUTH_ERROR,
