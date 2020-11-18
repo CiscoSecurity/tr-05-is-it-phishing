@@ -99,7 +99,7 @@ def success_observe_body():
                              'value': 'http://thisisphishing.com'
                          },
                          'priority': 85,
-                         'schema_version': '1.0.17',
+                         'schema_version': '1.0.22',
                          'severity': 'High',
                          'source': 'IsItPhishing',
                          'type': 'judgement',
