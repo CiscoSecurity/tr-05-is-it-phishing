@@ -47,7 +47,7 @@ class Config:
         }
     }
 
-    CTIM_SCHEMA_VERSION = '1.0.17'
+    CTIM_SCHEMA_VERSION = '1.0.22'
 
     CTIM_JUDGEMENT_DEFAULTS = {
         'type': 'judgement',
