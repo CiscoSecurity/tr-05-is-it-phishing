@@ -275,7 +275,8 @@ Each response from IsItPhishing API for the supported observables generates the 
 - `Verdict` based on the value of `status`:
   - PHISHING = Malicious
   - SPAM = Suspicious
-  - Unknown = Unknown
+  - TIMEOUT = Unknown
+  - NOT_EXPLORED = Unknown 
   
 - `Judgement` based on the value of `status`:
     - Dispositions:
