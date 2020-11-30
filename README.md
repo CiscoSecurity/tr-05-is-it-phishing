@@ -271,7 +271,7 @@ header set to `Bearer <JWT>`.
 ### CTIM Mapping Specifics
 
 Each response from IsItPhishing API for URLs generates the following CTIM entities:
-- `Verdict` and `Judgement` based on the value of `status` with following mapping:
+- `Verdict` and `Judgement` based on the value of `status` with the following mapping:
 
     | `status` | `disposition_name`|
     | -------- | ----------- |
