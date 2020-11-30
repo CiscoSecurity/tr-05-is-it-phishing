@@ -273,10 +273,10 @@ header set to `Bearer <JWT>`.
 Each response from IsItPhishing API for URLs generates the following CTIM entities:
 - `Verdict` and `Judgement` based on the value of `status` with following mapping:
 
-| `status` | `disposition_name`|
-| -------- | ----------- |
-| PHISHING | Malicious |
-| SPAM | Suspicious |
-| TIMEOUT | Unknown |
-| NOT_EXPLORED | Unknown |
-| UNKNOWN | Unknown |
+    | `status` | `disposition_name`|
+    | -------- | ----------- |
+    | PHISHING | Malicious |
+    | SPAM | Suspicious |
+    | TIMEOUT | Unknown |
+    | NOT_EXPLORED | Unknown |
+    | UNKNOWN | Unknown |
