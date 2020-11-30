@@ -34,7 +34,7 @@ def handle_error(exception):
 
 @app.errorhandler(TRFormattedError)
 def handle_tr_formatted_error(error):
-    app.logger.error(error)
+    app.logger.error(error.json)
     g.errors = [error.json]
     return jsonify_result()
 
