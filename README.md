@@ -280,5 +280,3 @@ Each response from IsItPhishing API for URLs generates the following CTIM entiti
 | TIMEOUT | Unknown |
 | NOT_EXPLORED | Unknown |
 | UNKNOWN | Unknown |
-
-
