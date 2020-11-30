@@ -259,7 +259,6 @@ header set to `Bearer <JWT>`.
 ### Supported Types of Observables
 
 - `url`
-- `domain`
 
 ### JWT Payload Structure
 
