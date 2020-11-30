@@ -4,7 +4,7 @@
 # IsItPhishing Relay
 
 Concrete Relay implementation using
-[IsItPhishing](https://isitphishing.ai/about)
+[IsItPhishing](https://isitphishing.ai/)
 as a third-party Cyber Threat Intelligence service provider.
 
 The Relay itself is just a simple application written in Python that can be
@@ -271,23 +271,15 @@ header set to `Bearer <JWT>`.
 
 ### CTIM Mapping Specifics
 
-Each response from IsItPhishing API for the supported observables generates the following CTIM entities:
-- `Verdict` based on the value of `status`:
-  - PHISHING = Malicious
-  - SPAM = Suspicious
-  - TIMEOUT = Unknown
-  - NOT_EXPLORED = Unknown 
-  
-- `Judgement` based on the value of `status`:
-    - Dispositions:
-      - PHISHING = Malicious
-      - SPAM = Suspicious
-      - UNKNOWN = Unknown
-      - TIMEOUT = Unknown
-      - NOT_EXPLORED = Unknown 
-    - Severity:
-      - PHISHING = High
-      - SPAM = Medium
-      - UNKNOWN = Unknown
-      - TIMEOUT = Unknown
-      - NOT_EXPLORED = Unknown 
+Each response from IsItPhishing API for URLs generates the following CTIM entities:
+- `Verdict` and `Judgement` based on the value of `status` with following mapping:
+
+| `status` | `disposition_name`|
+| -------- | ----------- |
+| PHISHING | Malicious |
+| SPAM | Suspicious |
+| TIMEOUT | Unknown |
+| NOT_EXPLORED | Unknown |
+| UNKNOWN | Unknown |
+
+
