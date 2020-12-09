@@ -19,7 +19,7 @@ class Config:
 
     SAMPLE_PHISHING_URL = 'http://www.thisisaphishingurl.com'
 
-    USER_AGENT = ('Cisco Threat Response Integrations '
+    USER_AGENT = ('SecureX Threat Response Integrations '
                   '<tr-integrations-support@cisco.com>')
 
     ENTITY_RELEVANCE_PERIOD = timedelta(days=7)
