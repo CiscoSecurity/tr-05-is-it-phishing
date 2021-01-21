@@ -207,3 +207,13 @@ def invalid_json_expected_payload():
         }
 
     return _make_message
+
+
+@fixture(scope='module')
+def expected_payload_unsupported_type(route):
+    payload_to_route_match = {
+        '/refer/observables': {'data': []},
+        '/deliberate/observables': {'data': {}},
+        '/observe/observables': {'data': {}}
+    }
+    return payload_to_route_match[route]
