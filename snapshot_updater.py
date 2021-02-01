@@ -7,16 +7,14 @@ SNAPSHOT_VALIDITY_PERIOD = timedelta(days=7)
 
 
 def read_snapshot(snapshot_file):
-    with open(snapshot_file, mode="r") as file:
+    with open(snapshot_file) as file:
         snapshot_data = json.load(file)
-        file.close()
         return snapshot_data
 
 
 def write_snapshot(snapshot_file, snapshot_data):
     with open(snapshot_file, mode="w") as file:
         json.dump(snapshot_data, file)
-        file.close()
 
 
 def add_timedelta(m):
