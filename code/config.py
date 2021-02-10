@@ -1,13 +1,11 @@
-import os
+import json
 from datetime import timedelta
-
-from __version__ import VERSION
 
 
 class Config:
-    VERSION = VERSION
 
-    SECRET_KEY = os.environ.get('SECRET_KEY', None)
+    settings = json.load(open('container_settings.json', 'r'))
+    VERSION = settings["VERSION"]
 
     API_URL = "https://iip.eu.vadesecure.com/api/v2/url"
 
