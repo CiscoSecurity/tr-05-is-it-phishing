@@ -1,24 +1,23 @@
-from datetime import datetime
-from http import HTTPStatus
-from unittest.mock import MagicMock
-from requests.exceptions import SSLError
-
-from authlib.jose import jwt
-from pytest import fixture
+import jwt
 
 from app import app
+from pytest import fixture
+from http import HTTPStatus
+from unittest.mock import MagicMock, patch
 from api.errors import INVALID_ARGUMENT
+from requests.exceptions import SSLError
+from tests.unit.mock_keys_for_tests import PRIVATE_KEY
+from tests.unit.mock_keys_for_tests import EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+
+
+@fixture(scope='function')
+def valid_json():
+    return [{'type': 'ip', 'value': 'cisco.com'}]
 
 
 @fixture(scope='session')
-def secret_key():
-    # Generate some string based on the current datetime.
-    return datetime.utcnow().isoformat()
-
-
-@fixture(scope='session')
-def client(secret_key):
-    app.secret_key = secret_key
+def client():
+    app.rsa_private_key = PRIVATE_KEY
 
     app.testing = True
 
@@ -28,13 +27,51 @@ def client(secret_key):
 
 @fixture(scope='session')
 def valid_jwt(client):
-    header = {'alg': 'HS256'}
+    def _make_jwt(
+            key='some_key',
+            jwks_host='b4046e54-5629-4da3-bdad-0a732f81a3cf.mock.pstmn.io',
+            aud='http://localhost',
+            kid='02B1174234C29F8EFB69911438F597FF3FFEE6B7',
+            wrong_structure=False
+    ):
+        payload = {
+            'key': key,
+            'jwks_host': jwks_host,
+            'aud': aud,
+        }
 
-    payload = {'key': 'some_key'}
+        if wrong_structure:
+            payload.pop('key')
 
-    secret_key = client.application.secret_key
+        return jwt.encode(
+            payload, client.application.rsa_private_key, algorithm='RS256',
+            headers={
+                'kid': kid
+            }
+        )
 
-    return jwt.encode(header, payload, secret_key).decode('ascii')
+    return _make_jwt
+
+
+@fixture(scope='function')
+def mock_request():
+    with patch('requests.get') as mock_request:
+        yield mock_request
+
+
+@fixture(scope='function')
+def mock_response_data():
+    def _set_data(status_code=None,
+                  payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT):
+        mock_data = MagicMock()
+
+        mock_data.status_code = status_code if status_code else HTTPStatus.OK
+
+        if payload:
+            mock_data.json = lambda: payload
+
+        return mock_data
+    return _set_data
 
 
 def is_it_phishing_response_mock(status_code, payload=None):
@@ -145,7 +182,7 @@ def success_enrich_expected_payload(
 
 
 @fixture(scope='session')
-def is_it_phishing_ssl_exception_mock(secret_key):
+def is_it_phishing_ssl_exception_mock():
     mock_exception = MagicMock()
     mock_exception.reason.args.__getitem__().verify_message \
         = 'self signed certificate'
@@ -170,7 +207,7 @@ def ssl_error_expected_payload(route, client):
 
 
 @fixture(scope='session')
-def is_it_phishing_invalid_url_response(secret_key):
+def is_it_phishing_invalid_url_response():
     return is_it_phishing_response_mock(
         HTTPStatus.BAD_REQUEST
     )

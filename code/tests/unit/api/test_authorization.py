@@ -1,10 +1,23 @@
 from http import HTTPStatus
-
-from authlib.jose import jwt
 from pytest import fixture
-
 from .utils import headers
 from api.errors import AUTH_ERROR
+from requests.exceptions import InvalidURL, ConnectionError
+from ..mock_keys_for_tests import (
+    EXPECTED_RESPONSE_OF_JWKS_ENDPOINT,
+    RESPONSE_OF_JWKS_ENDPOINT_WITH_WRONG_KEY
+)
+from api.utils import (
+    NO_AUTH_HEADER,
+    WRONG_AUTH_TYPE,
+    WRONG_JWKS_HOST,
+    WRONG_PAYLOAD_STRUCTURE,
+    JWK_HOST_MISSING,
+    WRONG_KEY,
+    WRONG_JWT_STRUCTURE,
+    WRONG_AUDIENCE,
+    KID_NOT_FOUND
+)
 
 
 def routes():
@@ -17,44 +30,6 @@ def routes():
 @fixture(scope='module', params=routes(), ids=lambda route: f'POST {route}')
 def route(request):
     return request.param
-
-
-@fixture(scope='module')
-def wrong_jwt_structure():
-    return 'wrong_jwt_structure'
-
-
-@fixture(scope='module')
-def wrong_payload_structure_jwt(client):
-    header = {'alg': 'HS256'}
-
-    payload = {'not_key': 'something'}
-
-    secret_key = client.application.secret_key
-
-    return jwt.encode(header, payload, secret_key).decode('ascii')
-
-
-@fixture(scope='session')
-def invalid_jwt(valid_jwt):
-    header, payload, signature = valid_jwt.split('.')
-
-    def jwt_decode(s: str) -> dict:
-        from authlib.common.encoding import urlsafe_b64decode, json_loads
-        return json_loads(urlsafe_b64decode(s.encode('ascii')))
-
-    def jwt_encode(d: dict) -> str:
-        from authlib.common.encoding import json_dumps, urlsafe_b64encode
-        return urlsafe_b64encode(json_dumps(d).encode('ascii')).decode('ascii')
-
-    payload = jwt_decode(payload)
-
-    # Corrupt the valid JWT by tampering with its payload.
-    payload['superuser'] = True
-
-    payload = jwt_encode(payload)
-
-    return '.'.join([header, payload, signature])
 
 
 @fixture(scope='module')
@@ -75,78 +50,152 @@ def authorization_errors_expected_payload(route):
 
 
 def test_call_with_authorization_header_failure(
-        route, client,
+        route, client, valid_json,
         authorization_errors_expected_payload
 ):
-    response = client.post(route)
+    response = client.post(route, json=valid_json)
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        'Authorization header is missing'
+        NO_AUTH_HEADER
     )
 
 
-def test_call_with_wrong_authorization_type(
-        route, client, valid_jwt,
+def test_call_with_wrong_auth_type(
+        route, client, valid_json, valid_jwt,
         authorization_errors_expected_payload
 ):
     response = client.post(
-        route, headers=headers(valid_jwt, auth_type='wrong_type')
+        route, json=valid_json,
+        headers=headers(valid_jwt(), auth_type='not')
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        'Wrong authorization type'
+        WRONG_AUTH_TYPE
+    )
+
+
+def test_call_with_wrong_jwks_host(
+        route, client, valid_json, valid_jwt, mock_request,
+        authorization_errors_expected_payload
+):
+    for error in (ConnectionError, InvalidURL):
+        mock_request.side_effect = error()
+
+        response = client.post(
+            route, json=valid_json, headers=headers(valid_jwt())
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.json == authorization_errors_expected_payload(
+            WRONG_JWKS_HOST
+        )
+
+
+def test_call_with_wrong_jwt_payload_structure(
+        route, client, valid_json, valid_jwt, mock_request,
+        mock_response_data, authorization_errors_expected_payload
+):
+    mock_request.return_value = mock_response_data(
+        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+    )
+
+    response = client.post(
+        route, json=valid_json,
+        headers=headers(valid_jwt(wrong_structure=True))
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == authorization_errors_expected_payload(
+        WRONG_PAYLOAD_STRUCTURE
+    )
+
+
+def test_call_with_missing_jwks_host(
+        route, client, valid_json, valid_jwt, mock_request,
+        mock_response_data, authorization_errors_expected_payload
+):
+    mock_request.return_value = mock_response_data(
+        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+    )
+
+    response = client.post(
+        route, json=valid_json,
+        headers=headers(valid_jwt(jwks_host=''))
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == authorization_errors_expected_payload(
+        JWK_HOST_MISSING
+    )
+
+
+def test_call_with_wrong_key(
+        route, client, valid_json, valid_jwt, mock_request,
+        mock_response_data, authorization_errors_expected_payload
+):
+    mock_request.return_value = mock_response_data(
+        payload=RESPONSE_OF_JWKS_ENDPOINT_WITH_WRONG_KEY
+    )
+
+    response = client.post(
+        route, json=valid_json,
+        headers=headers(valid_jwt())
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == authorization_errors_expected_payload(
+        WRONG_KEY
     )
 
 
 def test_call_with_wrong_jwt_structure(
-        route, client, wrong_jwt_structure,
-        authorization_errors_expected_payload
+        route, client, valid_json, mock_request,
+        mock_response_data, authorization_errors_expected_payload
 ):
-    response = client.post(route, headers=headers(wrong_jwt_structure))
+    mock_request.return_value = mock_response_data(
+        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+    )
 
+    response = client.post(
+        route, json=valid_json,
+        headers=headers('valid_jwt()')
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        'Wrong JWT structure'
+        WRONG_JWT_STRUCTURE
     )
 
 
-def test_call_with_jwt_encoded_by_wrong_key(
-        route, client, invalid_jwt,
-        authorization_errors_expected_payload
+def test_call_with_wrong_audience(
+        route, client, valid_json, valid_jwt, mock_request,
+        mock_response_data, authorization_errors_expected_payload
 ):
-    response = client.post(route, headers=headers(invalid_jwt))
+    mock_request.return_value = mock_response_data(
+        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+    )
 
+    response = client.post(
+        route, json=valid_json,
+        headers=headers(valid_jwt(aud='wrong_audience'))
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        'Failed to decode JWT with provided key'
+        WRONG_AUDIENCE
     )
 
 
-def test_call_with_wrong_jwt_payload_structure(
-        route, client, wrong_payload_structure_jwt,
-        authorization_errors_expected_payload
+def test_call_with_wrong_kid(
+        route, client, valid_json, valid_jwt, mock_request,
+        mock_response_data, authorization_errors_expected_payload
 ):
-    response = client.post(route,
-                           headers=headers(wrong_payload_structure_jwt))
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json == authorization_errors_expected_payload(
-        'Wrong JWT payload structure'
+    mock_request.return_value = mock_response_data(
+        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
     )
 
-
-def test_call_with_missed_secret_key(
-        route, client, valid_jwt,
-        authorization_errors_expected_payload
-):
-    right_secret_key = client.application.secret_key
-    client.application.secret_key = None
-    response = client.post(route, headers=headers(valid_jwt))
-    client.application.secret_key = right_secret_key
-
+    response = client.post(
+        route, json=valid_json,
+        headers=headers(valid_jwt(kid='wrong_kid'))
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        '<SECRET_KEY> is missing'
+        KID_NOT_FOUND
     )

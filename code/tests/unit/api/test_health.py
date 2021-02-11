@@ -1,9 +1,7 @@
-from http import HTTPStatus
-
 from pytest import fixture
-from unittest.mock import patch
-
 from .utils import headers
+from http import HTTPStatus
+from unittest.mock import patch
 
 
 def routes():
@@ -21,7 +19,7 @@ def test_health_call_success(
         route, client, valid_jwt
 ):
     mock_request.return_value = is_it_phishing_success_response
-    response = client.post(route, headers=headers(valid_jwt))
+    response = client.post(route, headers=headers(valid_jwt()))
     assert response.status_code == HTTPStatus.OK
 
 
@@ -32,7 +30,7 @@ def test_health_call_failure(
         internal_server_error_expected_payload
 ):
     mock_request.return_value = is_it_phishing_internal_server_error
-    response = client.post(route, headers=headers(valid_jwt))
+    response = client.post(route, headers=headers(valid_jwt()))
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == internal_server_error_expected_payload
@@ -48,7 +46,7 @@ def test_health_with_ssl_error(
     mock_request.side_effect = is_it_phishing_ssl_exception_mock
 
     response = client.post(
-        route, headers=headers(valid_jwt)
+        route, headers=headers(valid_jwt())
     )
 
     assert response.status_code == HTTPStatus.OK
