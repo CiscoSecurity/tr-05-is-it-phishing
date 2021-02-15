@@ -3,10 +3,7 @@ from pytest import fixture
 from .utils import headers
 from api.errors import AUTH_ERROR
 from requests.exceptions import InvalidURL, ConnectionError
-from ..mock_keys_for_tests import (
-    EXPECTED_RESPONSE_OF_JWKS_ENDPOINT,
-    RESPONSE_OF_JWKS_ENDPOINT_WITH_WRONG_KEY
-)
+
 from api.utils import (
     NO_AUTH_HEADER,
     WRONG_AUTH_TYPE,
@@ -95,11 +92,10 @@ def test_call_with_wrong_jwks_host(
 
 def test_call_with_wrong_jwt_payload_structure(
         route, client, valid_json, valid_jwt, mock_request,
-        mock_response_data, authorization_errors_expected_payload
+        is_it_phishing_public_key_response,
+        authorization_errors_expected_payload
 ):
-    mock_request.return_value = mock_response_data(
-        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
-    )
+    mock_request.return_value = is_it_phishing_public_key_response
 
     response = client.post(
         route, json=valid_json,
@@ -113,11 +109,10 @@ def test_call_with_wrong_jwt_payload_structure(
 
 def test_call_with_missing_jwks_host(
         route, client, valid_json, valid_jwt, mock_request,
-        mock_response_data, authorization_errors_expected_payload
+        is_it_phishing_public_key_response,
+        authorization_errors_expected_payload
 ):
-    mock_request.return_value = mock_response_data(
-        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
-    )
+    mock_request.return_value = is_it_phishing_public_key_response
 
     response = client.post(
         route, json=valid_json,
@@ -131,11 +126,10 @@ def test_call_with_missing_jwks_host(
 
 def test_call_with_wrong_key(
         route, client, valid_json, valid_jwt, mock_request,
-        mock_response_data, authorization_errors_expected_payload
+        is_it_phishing_wrong_public_key_response,
+        authorization_errors_expected_payload
 ):
-    mock_request.return_value = mock_response_data(
-        payload=RESPONSE_OF_JWKS_ENDPOINT_WITH_WRONG_KEY
-    )
+    mock_request.return_value = is_it_phishing_wrong_public_key_response
 
     response = client.post(
         route, json=valid_json,
@@ -149,11 +143,10 @@ def test_call_with_wrong_key(
 
 def test_call_with_wrong_jwt_structure(
         route, client, valid_json, mock_request,
-        mock_response_data, authorization_errors_expected_payload
+        is_it_phishing_public_key_response,
+        authorization_errors_expected_payload
 ):
-    mock_request.return_value = mock_response_data(
-        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
-    )
+    mock_request.return_value = is_it_phishing_public_key_response
 
     response = client.post(
         route, json=valid_json,
@@ -167,11 +160,10 @@ def test_call_with_wrong_jwt_structure(
 
 def test_call_with_wrong_audience(
         route, client, valid_json, valid_jwt, mock_request,
-        mock_response_data, authorization_errors_expected_payload
+        is_it_phishing_public_key_response,
+        authorization_errors_expected_payload
 ):
-    mock_request.return_value = mock_response_data(
-        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
-    )
+    mock_request.return_value = is_it_phishing_public_key_response
 
     response = client.post(
         route, json=valid_json,
@@ -185,11 +177,10 @@ def test_call_with_wrong_audience(
 
 def test_call_with_wrong_kid(
         route, client, valid_json, valid_jwt, mock_request,
-        mock_response_data, authorization_errors_expected_payload
+        is_it_phishing_public_key_response,
+        authorization_errors_expected_payload
 ):
-    mock_request.return_value = mock_response_data(
-        payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
-    )
+    mock_request.return_value = is_it_phishing_public_key_response
 
     response = client.post(
         route, json=valid_json,

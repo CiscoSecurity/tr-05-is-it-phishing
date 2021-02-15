@@ -27,8 +27,10 @@ def test_health_call_success(
 def test_health_call_failure(
         mock_request, route, client, valid_jwt,
         is_it_phishing_internal_server_error,
-        internal_server_error_expected_payload
+        internal_server_error_expected_payload,
+        mock_public_key_request, is_it_phishing_public_key_response
 ):
+    mock_public_key_request.return_value = is_it_phishing_public_key_response
     mock_request.return_value = is_it_phishing_internal_server_error
     response = client.post(route, headers=headers(valid_jwt()))
 
@@ -40,9 +42,11 @@ def test_health_call_failure(
 def test_health_with_ssl_error(
         mock_request, route, client, valid_jwt,
         is_it_phishing_ssl_exception_mock,
-        ssl_error_expected_payload
+        ssl_error_expected_payload,
+        mock_public_key_request,
+        is_it_phishing_public_key_response
 ):
-
+    mock_public_key_request.return_value = is_it_phishing_public_key_response
     mock_request.side_effect = is_it_phishing_ssl_exception_mock
 
     response = client.post(

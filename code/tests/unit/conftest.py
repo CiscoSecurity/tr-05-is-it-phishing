@@ -7,7 +7,10 @@ from unittest.mock import MagicMock, patch
 from api.errors import INVALID_ARGUMENT
 from requests.exceptions import SSLError
 from tests.unit.mock_keys_for_tests import PRIVATE_KEY
-from tests.unit.mock_keys_for_tests import EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+from tests.unit.mock_keys_for_tests import (
+    EXPECTED_RESPONSE_OF_JWKS_ENDPOINT,
+    RESPONSE_OF_JWKS_ENDPOINT_WITH_WRONG_KEY
+)
 
 
 @fixture(scope='function')
@@ -29,7 +32,7 @@ def client():
 def valid_jwt(client):
     def _make_jwt(
             key='some_key',
-            jwks_host='b4046e54-5629-4da3-bdad-0a732f81a3cf.mock.pstmn.io',
+            jwks_host='visibility.amp.cisco.com',
             aud='http://localhost',
             kid='02B1174234C29F8EFB69911438F597FF3FFEE6B7',
             wrong_structure=False
@@ -59,19 +62,10 @@ def mock_request():
         yield mock_request
 
 
-@fixture(scope='function')
-def mock_response_data():
-    def _set_data(status_code=None,
-                  payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT):
-        mock_data = MagicMock()
-
-        mock_data.status_code = status_code if status_code else HTTPStatus.OK
-
-        if payload:
-            mock_data.json = lambda: payload
-
-        return mock_data
-    return _set_data
+@fixture(scope="module")
+def mock_public_key_request():
+    with patch("requests.get") as mock_request:
+        yield mock_request
 
 
 def is_it_phishing_response_mock(status_code, payload=None):
@@ -83,6 +77,20 @@ def is_it_phishing_response_mock(status_code, payload=None):
     mock_response.json = lambda: payload
 
     return mock_response
+
+
+@fixture(scope='function')
+def is_it_phishing_public_key_response():
+    return is_it_phishing_response_mock(
+        HTTPStatus.OK, payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+    )
+
+
+@fixture(scope='function')
+def is_it_phishing_wrong_public_key_response():
+    return is_it_phishing_response_mock(
+        HTTPStatus.OK, payload=RESPONSE_OF_JWKS_ENDPOINT_WITH_WRONG_KEY
+    )
 
 
 @fixture(scope='function')
