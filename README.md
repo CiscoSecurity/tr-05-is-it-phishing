@@ -19,10 +19,15 @@ using Zappa.
 
 ## Testing (Optional)
 
+Open the code folder in your terminal.
+```
+cd code
+```
+
 If you want to test the application you have to install a couple of extra
 dependencies from the [test-requirements.txt](test-requirements.txt) file:
 ```
-pip install --upgrade --requirement test-requirements.txt
+pip install --upgrade --requirement requirements.txt
 ```
 
 You can perform two kinds of testing:
