@@ -10,6 +10,3 @@ venv/
 
 # dotenv
 .env
-
-# pytest
-/code/.coverage
