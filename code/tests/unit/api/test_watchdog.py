@@ -11,13 +11,10 @@ def route(request):
     return request.param
 
 
-@fixture(scope='module')
-def expected_payload(client):
-    return {'data': 'test'}
-
-
-def test_version_call_success(route, client, expected_payload):
+def test_watchdog_call_success(route, client):
     response = client.get(route, headers={'Health-Check': 'test'})
+
+    expected_payload = {'data': 'test'}
 
     assert response.status_code == HTTPStatus.OK
     assert response.get_json() == expected_payload
