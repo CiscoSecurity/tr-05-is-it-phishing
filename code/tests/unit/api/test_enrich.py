@@ -70,9 +70,10 @@ def test_enrich_call_with_valid_jwt_but_unsupported_type(
 def test_enrich_call_success(
         mock_request, route, client, valid_jwt, valid_json,
         success_enrich_expected_payload, is_it_phishing_success_response,
-        mock_public_key_request, is_it_phishing_public_key_response
+        is_it_phishing_api_request, is_it_phishing_public_key_response
 ):
-    mock_public_key_request.return_value = is_it_phishing_public_key_response
+    is_it_phishing_api_request.return_value = \
+        is_it_phishing_public_key_response
     mock_request.return_value = is_it_phishing_success_response
     response = client.post(route,
                            headers=headers(valid_jwt()), json=valid_json)
@@ -95,15 +96,16 @@ def test_enrich_call_with_extended_error_handling(
         is_it_phishing_invalid_url_response,
         internal_server_error_expected_payload,
         is_it_phishing_internal_server_error,
-        mock_public_key_request,
+        is_it_phishing_api_request,
         is_it_phishing_public_key_response
 ):
-    mock_public_key_request.return_value = is_it_phishing_public_key_response
-    mock_request.side_effect = [
+    is_it_phishing_api_request.return_value = \
+        is_it_phishing_public_key_response
+    mock_request.side_effect = (
         is_it_phishing_success_response,
         is_it_phishing_invalid_url_response,
         is_it_phishing_internal_server_error
-    ]
+    )
     response = client.post(
         route, headers=headers(valid_jwt()), json=valid_json_multiple
     )
@@ -128,10 +130,11 @@ def test_enrich_with_ssl_error(
         valid_json, is_it_phishing_ssl_exception_mock,
         ssl_error_expected_payload,
         is_it_phishing_public_key_response,
-        mock_public_key_request,
+        is_it_phishing_api_request,
 
 ):
-    mock_public_key_request.return_value = is_it_phishing_public_key_response
+    is_it_phishing_api_request.return_value = \
+        is_it_phishing_public_key_response
     mock_request.side_effect = is_it_phishing_ssl_exception_mock
 
     response = client.post(

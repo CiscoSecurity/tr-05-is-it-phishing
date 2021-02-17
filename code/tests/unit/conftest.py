@@ -63,7 +63,7 @@ def mock_request():
 
 
 @fixture(scope="module")
-def mock_public_key_request():
+def is_it_phishing_api_request():
     with patch("requests.get") as mock_request:
         yield mock_request
 
