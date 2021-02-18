@@ -4,11 +4,11 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from os import cpu_count
 from uuid import uuid4
 
-from flask import Blueprint, g
+from flask import Blueprint, g, current_app
 
 from api.schemas import ObservableSchema
 from api.utils import (
-    get_json, get_jwt, jsonify_data, current_app,
+    get_json, get_jwt, jsonify_data,
     jsonify_result, append_warning
 )
 from api.client import IsItPhishingClient

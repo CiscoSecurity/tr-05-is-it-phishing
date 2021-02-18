@@ -1,9 +1,7 @@
-from http import HTTPStatus
-
-from pytest import fixture
-from unittest.mock import patch
-
 from .utils import headers
+from pytest import fixture
+from http import HTTPStatus
+from unittest.mock import patch
 
 
 def routes():
@@ -27,12 +25,26 @@ def invalid_json_type():
     return [{'type': 'strange', 'value': 'cisco.com'}]
 
 
+@fixture(scope='module')
+def valid_json():
+    return [{'type': 'url', 'value': 'http://thisisphishing.com'}]
+
+
+@fixture(scope='module')
+def valid_json_multiple():
+    return [{'type': 'url', 'value': 'http://thisisphishing.com'},
+            {'type': 'url', 'value': 'test'},
+            {'type': 'url', 'value': 'http://thisisanotherphishing.com'}]
+
+
 def test_enrich_call_with_valid_jwt_but_invalid_json_value(
         route, client, valid_jwt, invalid_json_value,
-        invalid_json_expected_payload
+        invalid_json_expected_payload, mock_request,
+        is_it_phishing_public_key_response
 ):
+    mock_request.return_value = is_it_phishing_public_key_response
     response = client.post(route,
-                           headers=headers(valid_jwt),
+                           headers=headers(valid_jwt()),
                            json=invalid_json_value)
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_json_expected_payload(
@@ -43,27 +55,28 @@ def test_enrich_call_with_valid_jwt_but_invalid_json_value(
 
 def test_enrich_call_with_valid_jwt_but_unsupported_type(
         route, client, valid_jwt, invalid_json_type,
-        expected_payload_unsupported_type
+        expected_payload_unsupported_type, mock_request,
+        is_it_phishing_public_key_response
 ):
+    mock_request.return_value = is_it_phishing_public_key_response
     response = client.post(route,
-                           headers=headers(valid_jwt),
+                           headers=headers(valid_jwt()),
                            json=invalid_json_type)
     assert response.status_code == HTTPStatus.OK
     assert response.json == expected_payload_unsupported_type
 
 
-@fixture(scope='module')
-def valid_json():
-    return [{'type': 'url', 'value': 'http://thisisphishing.com'}]
-
-
 @patch('requests.post')
 def test_enrich_call_success(
         mock_request, route, client, valid_jwt, valid_json,
-        success_enrich_expected_payload, is_it_phishing_success_response
+        success_enrich_expected_payload, is_it_phishing_success_response,
+        is_it_phishing_api_request, is_it_phishing_public_key_response
 ):
+    is_it_phishing_api_request.return_value = \
+        is_it_phishing_public_key_response
     mock_request.return_value = is_it_phishing_success_response
-    response = client.post(route, headers=headers(valid_jwt), json=valid_json)
+    response = client.post(route,
+                           headers=headers(valid_jwt()), json=valid_json)
     assert response.status_code == HTTPStatus.OK
     response = response.get_json()
     if response.get('data') and response['data'].get('verdicts'):
@@ -76,28 +89,25 @@ def test_enrich_call_success(
     assert response == success_enrich_expected_payload
 
 
-@fixture(scope='module')
-def valid_json_multiple():
-    return [{'type': 'url', 'value': 'http://thisisphishing.com'},
-            {'type': 'url', 'value': 'test'},
-            {'type': 'url', 'value': 'http://thisisanotherphishing.com'}]
-
-
 @patch('requests.post')
 def test_enrich_call_with_extended_error_handling(
         mock_request, route, client, valid_jwt, valid_json_multiple,
         success_enrich_expected_payload, is_it_phishing_success_response,
         is_it_phishing_invalid_url_response,
         internal_server_error_expected_payload,
-        is_it_phishing_internal_server_error
+        is_it_phishing_internal_server_error,
+        is_it_phishing_api_request,
+        is_it_phishing_public_key_response
 ):
-    mock_request.side_effect = [
+    is_it_phishing_api_request.return_value = \
+        is_it_phishing_public_key_response
+    mock_request.side_effect = (
         is_it_phishing_success_response,
         is_it_phishing_invalid_url_response,
         is_it_phishing_internal_server_error
-    ]
+    )
     response = client.post(
-        route, headers=headers(valid_jwt), json=valid_json_multiple
+        route, headers=headers(valid_jwt()), json=valid_json_multiple
     )
     assert response.status_code == HTTPStatus.OK
     response = response.get_json()
@@ -118,13 +128,17 @@ def test_enrich_call_with_extended_error_handling(
 def test_enrich_with_ssl_error(
         mock_request, route, client, valid_jwt,
         valid_json, is_it_phishing_ssl_exception_mock,
-        ssl_error_expected_payload
-):
+        ssl_error_expected_payload,
+        is_it_phishing_public_key_response,
+        is_it_phishing_api_request,
 
+):
+    is_it_phishing_api_request.return_value = \
+        is_it_phishing_public_key_response
     mock_request.side_effect = is_it_phishing_ssl_exception_mock
 
     response = client.post(
-        route, headers=headers(valid_jwt), json=valid_json
+        route, headers=headers(valid_jwt()), json=valid_json
     )
 
     assert response.status_code == HTTPStatus.OK

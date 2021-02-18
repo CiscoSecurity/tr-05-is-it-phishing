@@ -15,5 +15,5 @@ def route(request):
 
 
 def test_respond_call_success(route, client, valid_jwt):
-    response = client.post(route, headers=headers(valid_jwt))
+    response = client.post(route, headers=headers(valid_jwt()))
     assert response.status_code == HTTPStatus.OK
