@@ -127,6 +127,14 @@ zappa undeploy dev
 command does not change the current `URL`. The `undeploy` command destroys the
 old `URL` forever.
 
+### SecureX Threat Response Module
+
+Now, the only thing left to do is to follow one of these URLs to navigate 
+to SecureX Threat Response page in your region and create the IsItPhishing module using your Lambda's URL:
+- US: https://securex.us.security.cisco.com/integrations/available/538d32c2-c217-4088-8de9-2ab56e6a89b7/new
+- EU: https://securex.eu.security.cisco.com/integrations/available/42d2159f-74aa-4e35-b427-04451d80c393/new
+- APJC: https://securex.apjc.security.cisco.com/integrations/available/94943523-388a-4191-a026-1cabe3e7c65e/new
+
 ## Step 3: Testing (Optional)
 
 If you want to test the application you have to install a couple of extra
