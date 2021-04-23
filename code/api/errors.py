@@ -79,3 +79,11 @@ class IsItPhishingNotExplored(TRFormattedError):
             f'This URL may cause collateral damage to the end user.',
             'warning'
         )
+
+
+class IsItPhishingWatchdogError(TRFormattedError):
+    def __init__(self):
+        super().__init__(
+            code='health check failed',
+            message='Invalid Health Check'
+        )
