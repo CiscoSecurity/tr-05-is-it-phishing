@@ -8,8 +8,9 @@ from flask import Blueprint, g, current_app
 
 from api.schemas import ObservableSchema
 from api.utils import (
-    get_json, get_jwt, jsonify_data,
-    jsonify_result, append_warning
+    get_json, get_jwt,
+    jsonify_result,
+    append_warning
 )
 from api.client import IsItPhishingClient
 from api.errors import IsItPhishingTimeout, IsItPhishingNotExplored
@@ -129,10 +130,3 @@ def observe_observables():
                 g.judgements.append(extract_judgement(output, observable))
 
     return jsonify_result()
-
-
-@enrich_api.route('/refer/observables', methods=['POST'])
-def refer_observables():
-    _ = get_jwt()
-    _ = get_observables()
-    return jsonify_data([])

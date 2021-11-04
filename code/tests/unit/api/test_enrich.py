@@ -7,7 +7,6 @@ from unittest.mock import patch
 def routes():
     yield '/deliberate/observables'
     yield '/observe/observables'
-    yield '/refer/observables'
 
 
 @fixture(scope='module', params=routes(), ids=lambda route: f'POST {route}')
