@@ -28,11 +28,14 @@ class IsItPhishingClient:
             **self.request_json
         }
 
-        response = requests.post(
-            self.api_url,
-            json=data,
-            headers=self.headers
-        )
+        try:
+            response = requests.post(
+                self.api_url,
+                json=data,
+                headers=self.headers
+            )
+        except UnicodeEncodeError:
+            raise AuthorizationError()
 
         if response.ok:
             return response.json()
