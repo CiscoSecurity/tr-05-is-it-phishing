@@ -1,3 +1,5 @@
+import traceback
+
 from flask import Flask, jsonify, g
 
 from api.enrich import enrich_api
@@ -20,7 +22,6 @@ app.register_blueprint(version_api)
 
 @app.errorhandler(Exception)
 def handle_error(exception):
-    app.logger.error(exception)
     code = getattr(exception, 'code', 500)
     message = getattr(exception, 'description', 'Something went wrong.')
     reason = '.'.join([
@@ -28,13 +29,16 @@ def handle_error(exception):
         exception.__class__.__name__,
     ])
 
+    if code != 404:
+        app.logger.error(traceback.format_exc())
+
     response = jsonify(code=code, message=message, reason=reason)
     return response, code
 
 
 @app.errorhandler(TRFormattedError)
 def handle_tr_formatted_error(error):
-    app.logger.error(error.json)
+    app.logger.error(traceback.format_exc())
     g.errors = [error.json]
     return jsonify_result()
 
